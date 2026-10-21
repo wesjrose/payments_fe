@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+
 import {
   AddressElement,
   PaymentElement,
@@ -6,7 +7,13 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 
-export function CheckoutForm() {
+import { paymentsApi } from "./api/payments";
+
+interface CheckoutFormProps {
+  snapshotID: string
+}
+
+export function CheckoutForm({ snapshotID }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,16 +32,38 @@ export function CheckoutForm() {
     // Validates and collects the payment + address details entered into the
     // Elements. The next step (not wired up yet) is sending these details to
     // the backend to create a PaymentIntent and confirming the payment.
-    const { error } = await elements.submit();
+    const { error: submitError } = await elements.submit();
 
-    if (error) {
-      setMessage(error.message ?? "Something went wrong, please try again.");
+    if (submitError) {
+      setMessage(submitError.message ?? "Something went wrong, please try again.");
       setIsSubmitting(false);
       return;
     }
 
-    setMessage("Payment details look good. Processing isn't wired up yet.");
-    setIsSubmitting(false);
+    let clientSecret: string;
+
+    try {
+      clientSecret = await paymentsApi.initiatePayment(snapshotID);
+    } catch {
+      setMessage("Couldn't start the payment")
+      setIsSubmitting(false)
+      return
+    }
+
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      clientSecret,
+      confirmParams: {
+        return_url: `${window.location.origin}/payment-complete`
+      }
+    }
+    )
+
+    if (error) {
+      setMessage(error.message ?? "Payment processing error, please try again")
+      setIsSubmitting(false);
+    }
   };
 
   return (

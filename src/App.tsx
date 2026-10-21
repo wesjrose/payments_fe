@@ -8,15 +8,12 @@ import { paymentsApi } from "./api/payments";
 
 import "./App.css";
 import { useState, useEffect } from "react";
+import Checkout from "./Checkout";
 
 // Hardcoded to match the backend's prototype cart for now. Once the backend
 // returns a real PaymentIntent client secret this will come from there.
-const elementsOptions: StripeElementsOptions = {
-  mode: "payment",
-  amount: 10025,
-  currency: "cad",
-  appearance: { theme: "stripe" },
-};
+
+
 
 function App() {
 
@@ -24,10 +21,7 @@ function App() {
   console.log(snapshot)
   const [error, setError] = useState<string | null>(null);
 
-
   useEffect(() => {
-
-    const controller = new AbortController();
 
     paymentsApi.getCheckoutSnapshot().then(setSnapshot).catch((err) => { setSnapshot(err.message) })
     console.log(snapshot)
@@ -43,10 +37,15 @@ function App() {
 
         {/* Placeholder values; replace with data from the backend. */}
         {snapshot && <OrderSummary subtotal={snapshot.subtotal} tax={snapshot.tax} total={snapshot.total} currency={snapshot.currency} />}
+        {error ? (
+          <p className="checkout-message">Couldn't load your order: {error}</p>
+        ) : !snapshot ? (
+          <p className="checkout-message">Loading your order...</p>
+        ) : (
+          <Checkout snapshot={snapshot} />
+        )
+        }
 
-        <Elements stripe={stripePromise} options={elementsOptions}>
-          <CheckoutForm />
-        </Elements>
       </div>
     </main>
   );
