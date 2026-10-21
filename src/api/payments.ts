@@ -2,7 +2,9 @@ import { api } from "./client";
 
 export interface CheckoutSnapshot {
   id: string;
-  amount: number;
+  subtotal: number;
+  total: number;
+  tax: number;
   currency: string;
   data: Record<string, unknown>;
   created_at: string;
@@ -11,7 +13,7 @@ export interface CheckoutSnapshot {
 
 export const paymentsApi = {
   getCheckoutSnapshot: () =>
-    api.get<CheckoutSnapshot>("/payments/checkout-snapshot"),
+    api.post<CheckoutSnapshot>("/payments/checkout-snapshot"),
 
   // Returns the Stripe PaymentIntent client secret.
   initiatePayment: (checkoutSnapshotId: string) =>
