@@ -20,13 +20,16 @@ function App() {
   const [snapshot, setSnapshot] = useState<CheckoutSnapshot | null>(null);
   console.log(snapshot)
   const [error, setError] = useState<string | null>(null);
+  // Generated once per page load, so repeated calls (e.g. StrictMode's double
+  // effect run) send the same key.
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   useEffect(() => {
 
-    paymentsApi.getCheckoutSnapshot().then(setSnapshot).catch((err) => { setSnapshot(err.message) })
+    paymentsApi.getCheckoutSnapshot(idempotencyKey).then(setSnapshot).catch((err) => { setSnapshot(err.message) })
     console.log(snapshot)
 
-  }, [])
+  }, [idempotencyKey])
 
 
   return (

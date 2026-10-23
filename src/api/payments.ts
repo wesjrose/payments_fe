@@ -12,8 +12,12 @@ export interface CheckoutSnapshot {
 }
 
 export const paymentsApi = {
-  getCheckoutSnapshot: () =>
-    api.post<CheckoutSnapshot>("/payments/checkout-snapshot"),
+  // Reuse the same key when retrying so the backend can return the existing
+  // snapshot instead of creating a duplicate.
+  getCheckoutSnapshot: (idempotencyKey: string) =>
+    api.post<CheckoutSnapshot>("/payments/checkout-snapshot", undefined, {
+      headers: { "Idempotency-Key": idempotencyKey },
+    }),
 
   // Returns the Stripe PaymentIntent client secret.
   initiatePayment: (checkoutSnapshotId: string) =>

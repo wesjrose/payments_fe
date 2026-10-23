@@ -68,10 +68,10 @@ export function CheckoutForm({ snapshotID }: CheckoutFormProps) {
 
   return (
     <form className="checkout-form" onSubmit={handleSubmit}>
-      <section className="checkout-section">
+      {/* <section className="checkout-section">
         <h2>Shipping address</h2>
         <AddressElement options={{ mode: "shipping" }} />
-      </section>
+      </section> */}
 
       <section className="checkout-section">
         <h2>Payment details</h2>
